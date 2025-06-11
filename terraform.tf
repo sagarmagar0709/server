@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "static_website" {
-  bucket = "sagar-static-website-demo"  # Change bucket name
+  bucket = "sagar-static-website-demo"  # Replace with a unique bucket name
 
   website {
     index_document = "index.html"
@@ -19,11 +19,11 @@ resource "aws_s3_bucket" "static_website" {
     enabled = true
 
     noncurrent_version_expiration {
-      days = 30  # delete non-current versions after 30 days
+      days = 30
     }
 
     expiration {
-      days = 365 # delete current object after 1 year
+      days = 365
     }
   }
 
@@ -33,7 +33,8 @@ resource "aws_s3_bucket" "static_website" {
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "public_access" {
+# 👇 Ensures bucket accepts public policy
+resource "aws_s3_bucket_public_access_block" "allow_public_policy" {
   bucket = aws_s3_bucket.static_website.id
 
   block_public_acls       = false
@@ -42,17 +43,18 @@ resource "aws_s3_bucket_public_access_block" "public_access" {
   restrict_public_buckets = false
 }
 
+# 👇 Public read access policy
 resource "aws_s3_bucket_policy" "public_policy" {
   bucket = aws_s3_bucket.static_website.id
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version = "2012-10-17",
     Statement = [
       {
-        Sid       = "PublicReadGetObject"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = ["s3:GetObject"]
+        Sid       = "PublicReadGetObject",
+        Effect    = "Allow",
+        Principal = "*",
+        Action    = "s3:GetObject",
         Resource  = "${aws_s3_bucket.static_website.arn}/*"
       }
     ]
