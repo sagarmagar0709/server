@@ -41,9 +41,12 @@ module "vpc" {
   public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
   private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
-  enable_dns_hostnames = true
+  enable_nat_gateway     = true
+  single_nat_gateway     = true
+  enable_dns_hostnames   = true
+  enable_dns_support     = true
+  create_database_subnet_group = true
+  database_subnets       = ["10.0.5.0/24", "10.0.6.0/24"]
 }
 
 # Security Group
@@ -111,14 +114,21 @@ module "alb" {
       backend_protocol = "HTTP"
       backend_port     = 80
       target_type      = "instance"
+      health_check     = {
+        path                = "/"
+        protocol            = "HTTP"
+        interval            = 30
+        timeout             = 5
+        healthy_threshold   = 5
+        unhealthy_threshold = 2
+      }
     }
   ]
 
-  listeners = [
+  http_tcp_listeners = [
     {
       port               = 80
       protocol           = "HTTP"
-      default_action_type = "forward"
       target_group_index = 0
     }
   ]
